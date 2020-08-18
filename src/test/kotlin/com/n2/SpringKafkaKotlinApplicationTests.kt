@@ -1,19 +1,15 @@
 package com.n2
 
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.kafka.test.context.EmbeddedKafka
-import org.springframework.test.context.junit4.SpringRunner
+import org.junit.jupiter.api.Disabled
 
-@RunWith(SpringRunner::class)
-@SpringBootTest
-@EmbeddedKafka
+//@RunWith(SpringRunner::class)
+//@SpringBootTest
+//@EmbeddedKafka
 class SpringKafkaKotlinApplicationTests {
 
-	@Test
-	fun contextLoads() {
-		assert(true)
-	}
+    @Disabled
+    fun contextLoads() {
+        assert(true)
+    }
 
 }

@@ -1,15 +1,14 @@
 package com.n2.directorywatcher
 
-import java.io.File
-
 data class WEvent(
         val agentID: Int,
-        val file: File,
-        val content: ByteArray = ByteArray(0),
-        val kind: Kind
+        val fileName: String,
+        val timeStamp: Long,
+        val kind: Kind,
+        val content: ByteArray = ByteArray(0)
 ) {
     enum class Kind(val kind: String) {
         Initialized("initialized"),
-        Created("created"),
+        Created("new file created event"),
     }
 }

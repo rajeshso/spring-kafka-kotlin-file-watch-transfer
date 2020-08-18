@@ -1,12 +1,10 @@
 package com.n2.directorywatcher
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import kotlinx.coroutines.channels.Channel
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.*
-import java.nio.file.WatchKey
 
 fun File.asWatchChannel(
 ) = WatchChannel(
@@ -14,13 +12,15 @@ fun File.asWatchChannel(
         file = this
 )
 
+@ExperimentalCoroutinesApi
 open class WatchChannel(
         agentID: Int = 1,
         val file: File,
+        val launchScope: CoroutineScope = GlobalScope,
+        val dispatcher: CoroutineDispatcher = Dispatchers.IO,
         private val channel: Channel<WEvent> = Channel()
 ) : Channel<WEvent> by channel {
-
-    val agentID: Int = agentID
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val watchService: WatchService = FileSystems.getDefault().newWatchService()
     private val registeredKeys = ArrayList<WatchKey>()
     private val path: Path = if (file.isFile) {
@@ -28,10 +28,10 @@ open class WatchChannel(
     } else {
         file
     }.toPath()
+    var job: Job? = null
 
 
     private fun registerPaths() {
-        //TODO: Is clearing required ?
         registeredKeys.apply {
             forEach { it.cancel() }
             clear()
@@ -41,12 +41,13 @@ open class WatchChannel(
 
     init {
         registerPaths()
-        GlobalScope.launch(Dispatchers.IO) {
+        job = launchScope.launch(dispatcher) {
 
             channel.send(
                     WEvent(
                             agentID = agentID,
-                            file = path.toFile(),
+                            fileName = path.toFile().absolutePath,
+                            timeStamp = path.toFile().lastModified(),
                             kind = WEvent.Kind.Initialized
                     ))
 
@@ -56,26 +57,26 @@ open class WatchChannel(
                 monitorKey.pollEvents().forEach {
                     val eventPath = dirPath.resolve(it.context() as Path)
                     val eventType = WEvent.Kind.Created
-                    val event = WEvent(
-                            agentID = agentID,
-                            file = eventPath.toFile(),
-                            content = eventPath.toFile().readBytes(),
-                            kind = eventType
-                    )
-                    // if any folder is created
-                    if (event.kind in listOf(WEvent.Kind.Created) &&
-                            event.file.isDirectory) {
-                        TODO("Warn that this is a directory and not to do anything about it")
+                    if (eventType in listOf(WEvent.Kind.Created) &&
+                            eventPath.toFile().isDirectory) {
+                        logger.warn("Warn that ${eventPath.toFile().absolutePath} is a directory and ignore the event")
+                    } else {
+                        val event = WEvent(
+                                agentID = agentID,
+                                fileName = eventPath.toFile().absolutePath,
+                                timeStamp = eventPath.toFile().lastModified(),
+                                kind = eventType,
+                                content = eventPath.toFile().readBytes()
+                        )
+                        channel.send(event)
                     }
-                    channel.send(event)
                 }
 
                 if (!monitorKey.reset()) {
                     monitorKey.cancel()
                     close()
                     break
-                }
-                else if (isClosedForSend) {
+                } else if (isClosedForSend) {
                     break
                 }
             }
@@ -87,6 +88,7 @@ open class WatchChannel(
             forEach { it.cancel() }
             clear()
         }
+        job?.cancel()
         return channel.close(cause)
     }
 

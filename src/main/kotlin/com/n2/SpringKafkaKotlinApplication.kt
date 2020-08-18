@@ -10,8 +10,9 @@ import org.springframework.kafka.annotation.EnableKafka
 @EnableConfigurationProperties
 open class SpringKafkaKotlinApplication {
 }
+
 fun main(args: Array<String>) {
-	runApplication<SpringKafkaKotlinApplication>(*args)
+    runApplication<SpringKafkaKotlinApplication>(*args)
 }
 
 

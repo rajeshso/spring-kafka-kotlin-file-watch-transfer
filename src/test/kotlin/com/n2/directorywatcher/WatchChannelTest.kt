@@ -1,17 +1,20 @@
 package com.n2.directorywatcher
+
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
-import java.io.File
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class WatchChannelTest {
+    @ExperimentalCoroutinesApi
     @Test
-    fun `watch current directory for initalization event` () {
+    fun `watch current directory for initalization event`() {
         runBlockingTest {
-            val currentDirectory  = File(System.getProperty("user.dir"))
+            val currentDirectory = File(System.getProperty("user.dir"))
 
             val watchChannel = currentDirectory.asWatchChannel()
 
@@ -22,7 +25,7 @@ class WatchChannelTest {
                 watchChannel.consumeEach { event ->
                     // there is always the first event triggered and here we only test that
                     assertThat(event.kind).isEqualTo(WEvent.Kind.Initialized)
-                    assertThat(event.file.absolutePath).isEqualTo(currentDirectory.absolutePath)
+                    assertThat(event.fileName).isEqualTo(currentDirectory.absolutePath)
                 }
             }
 
@@ -37,8 +40,8 @@ class WatchChannelTest {
     @Disabled
     fun `watch current directory for created event`() {
         runBlockingTest {
-            val currentDirectory  = File(System.getProperty("user.dir"))
-            val fileName = System.getProperty("user.dir")+"/"+"abc.txt"
+            val currentDirectory = File(System.getProperty("user.dir"))
+            val fileName = System.getProperty("user.dir") + "/" + "abc.txt"
             val watchChannel = currentDirectory.asWatchChannel()
 
             assertThat(watchChannel.isClosedForSend).isFalse()
@@ -48,14 +51,12 @@ class WatchChannelTest {
                 watchChannel.consumeEach { event ->
                     // there is always the first event triggered and here we only test that
                     assertThat(event.kind).isEqualTo(WEvent.Kind.Created)
-                    assertThat(event.file.absolutePath).isEqualTo(newFile)
+                    assertThat(event.fileName).isEqualTo(newFile)
                 }
             }
 
             assertThat(watchChannel.isClosedForSend).isFalse()
-
             watchChannel.close()
-
             assertThat(watchChannel.isClosedForSend).isTrue()
         }
     }

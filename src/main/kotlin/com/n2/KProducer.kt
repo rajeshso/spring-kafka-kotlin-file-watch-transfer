@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-class KProducer(private val kafkaTemplate: KafkaTemplate<String, ByteArray>) {
+class KProducer(private val kafkaTemplate: KafkaTemplate<String, String>) {
 
-  fun send(message: String) {
-    kafkaTemplate.sendDefault(UUID.randomUUID().toString(),message.toByteArray())
-  }
+    fun send(message: String) {
+        kafkaTemplate.sendDefault(UUID.randomUUID().toString(), message)
+    }
 
 }

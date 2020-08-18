@@ -1,11 +1,16 @@
 package com.n2
 
+import com.google.gson.Gson
 import com.n2.directorywatcher.WatchChannel
 import com.n2.directorywatcher.asWatchChannel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
 import javax.annotation.PostConstruct
@@ -15,28 +20,42 @@ import javax.annotation.PreDestroy
 @Component
 class DirectoryWatcherBean {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Autowired
     lateinit var kProducer: KProducer
 
-    var watchChannel : WatchChannel? = null
+    @Value("\${spring-kafka-kotlin-file-watch-transfer.filepath}")
+    lateinit var filepath: String
+
+    @ExperimentalCoroutinesApi
+    var watchChannel: WatchChannel? = null
+
+    var job: Job? = null
 
     @PostConstruct
     fun init() {
-        println("post constructed")
-        val currentDirectory = File("/Users/rajesh/Workspace/KafkaSpace/spirng-kafka-kotlin/testdir")
+        logger.info("directory watch constructed")
+        val currentDirectory = File(filepath)
+        if (!validate(currentDirectory)) throw IllegalStateException("$currentDirectory is invalid")
 
         watchChannel = currentDirectory.asWatchChannel()
 
-        GlobalScope.launch {
+        job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->
-                kProducer.send(" ${event.kind.name}  ${event.file.canonicalPath}")
+                val jsonWEvent = Gson().toJson(event)
+                kProducer.send(jsonWEvent)
             }
         }
     }
 
+    @ExperimentalCoroutinesApi
     @PreDestroy
-    fun destroy(): Unit {
-        println("closed the watch channel")
+    fun destroy() {
+        logger.info("closed the watch channel")
         watchChannel?.close()
+        job?.cancel()
     }
+
+    fun validate(file: File): Boolean = file.exists() && file.isDirectory && file.canRead()
 }

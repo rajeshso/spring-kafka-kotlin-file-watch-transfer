@@ -4,11 +4,13 @@ spring:
     producer:
       client-id: 1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     template:
       default-topic: 'simple-message-topic'
     consumer:
       client-id: 2
       group-id: 200
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+spring-kafka-kotlin-file-watch-transfer:
+  filepath: '/Users/rajesh/Workspace/KafkaSpace/spring-kafka-kotlin-file-watch-transfer/testdir'

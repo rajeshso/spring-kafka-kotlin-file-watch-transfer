@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "spring-kafka-kotlin-file-watch-transfer.filepath",
+      "type": "java.lang.String",
+      "description": "The directory path that should be monitored."
+    }
+  ]
+}

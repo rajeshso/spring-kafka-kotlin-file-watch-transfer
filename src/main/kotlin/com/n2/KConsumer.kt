@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component
 @Component
 class KConsumer {
 
-  private val logger = LoggerFactory.getLogger(javaClass)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-  @KafkaListener(topics = ["simple-message-topic"])
-  fun processMessage(message: ByteArray) {
-    logger.info("got message: {}", String(message))
-  }
+    @KafkaListener(topics = ["simple-message-topic"])
+    fun processMessage(message: String) {
+        logger.info("got message: {}", message)
+    }
 }
