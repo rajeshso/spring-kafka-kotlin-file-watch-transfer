@@ -6,20 +6,25 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.*
 
+@ExperimentalCoroutinesApi
 fun File.asWatchChannel(
+         agentID:Int = 1
 ) = WatchChannel(
-        agentID = 1,
+        agentID = agentID,
         file = this
 )
 
 @ExperimentalCoroutinesApi
 open class WatchChannel(
-        agentID: Int = 1,
+        val agentID: Int = 1,
         val file: File,
         val launchScope: CoroutineScope = GlobalScope,
         val dispatcher: CoroutineDispatcher = Dispatchers.IO,
         private val channel: Channel<WEvent> = Channel()
 ) : Channel<WEvent> by channel {
+    companion object {
+        val max_message_bytes = 1048588
+    }
     private val logger = LoggerFactory.getLogger(javaClass)
     private val watchService: WatchService = FileSystems.getDefault().newWatchService()
     private val registeredKeys = ArrayList<WatchKey>()
@@ -59,16 +64,21 @@ open class WatchChannel(
                     val eventType = WEvent.Kind.Created
                     if (eventType in listOf(WEvent.Kind.Created) &&
                             eventPath.toFile().isDirectory) {
-                        logger.warn("Warn that ${eventPath.toFile().absolutePath} is a directory and ignore the event")
+                        logger.warn("Warn that ${eventPath.toFile().absolutePath} is a directory. So ignore the event")
                     } else {
-                        val event = WEvent(
-                                agentID = agentID,
-                                fileName = eventPath.toFile().absolutePath,
-                                timeStamp = eventPath.toFile().lastModified(),
-                                kind = eventType,
-                                content = eventPath.toFile().readBytes()
-                        )
-                        channel.send(event)
+                        val content = eventPath.toFile().readBytes()
+                        if (content.size< max_message_bytes) {
+                            val event = WEvent(
+                                    agentID = agentID,
+                                    fileName = eventPath.toFile().absolutePath,
+                                    timeStamp = eventPath.toFile().lastModified(),
+                                    kind = eventType,
+                                    content = content
+                            )
+                            channel.send(event)
+                        }else {
+                            logger.warn("Warn that ${eventPath.toFile().absolutePath} has a size of ${content.size} which is more than the permitted ${max_message_bytes}.So ignore the event")
+                        }
                     }
                 }
 

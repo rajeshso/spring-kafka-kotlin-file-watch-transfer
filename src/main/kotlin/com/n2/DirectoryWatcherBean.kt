@@ -28,6 +28,9 @@ class DirectoryWatcherBean {
     @Value("\${spring-kafka-kotlin-file-watch-transfer.filepath}")
     lateinit var filepath: String
 
+    @Value("\${spring.kafka.producer.client-id}")
+    lateinit var agentID: String
+
     @ExperimentalCoroutinesApi
     var watchChannel: WatchChannel? = null
 
@@ -39,7 +42,7 @@ class DirectoryWatcherBean {
         val currentDirectory = File(filepath)
         if (!validate(currentDirectory)) throw IllegalStateException("$currentDirectory is invalid")
 
-        watchChannel = currentDirectory.asWatchChannel()
+        watchChannel = currentDirectory.asWatchChannel(agentID.toInt())
 
         job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->

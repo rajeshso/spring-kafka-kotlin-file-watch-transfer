@@ -1,16 +1,16 @@
 spring:
   kafka:
-    bootstrap-servers: 'localhost:9092'
+    bootstrap-servers: ${bootstrapservers}
     producer:
-      client-id: 1
+      client-id: ${agentid}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     template:
-      default-topic: 'simple-message-topic'
+      default-topic: ${topic}
     consumer:
       client-id: 2
       group-id: 200
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 spring-kafka-kotlin-file-watch-transfer:
-  filepath: '/Users/rajesh/Workspace/KafkaSpace/spring-kafka-kotlin-file-watch-transfer/testdir'
+  filepath: ${filepath}
