@@ -1,63 +1,82 @@
 package com.n2.directorywatcher
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.n2.directorywatcher.WEvent.Kind
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.take
+import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.Comparator.reverseOrder
 
 class WatchChannelTest {
+
+    val dir: Path = Files.createTempDirectory("my-dir")
+    val fileName = "test-file.txt"
+
+    @BeforeEach
+    fun `set up directory`() {
+        val fileToCreatePath: Path = dir.resolve(fileName)
+        val newFilePath: Path = Files.createFile(fileToCreatePath)
+        assertThat(Files.exists(newFilePath))
+    }
+
+    @AfterEach
+    fun `clean up`() {
+        Files.walk(dir)
+                .sorted(reverseOrder())
+                .map(Path::toFile)
+                .forEach{it.delete()}
+    }
+
     @ExperimentalCoroutinesApi
     @Test
     fun `watch current directory for initalization event`() {
         runBlockingTest {
-            val currentDirectory = File(System.getProperty("user.dir"))
-
+            val currentDirectory = dir.toFile()
             val watchChannel = currentDirectory.asWatchChannel()
-
             assertThat(watchChannel.isClosedForSend).isFalse()
             assertThat(watchChannel.file.absolutePath).isEqualTo(currentDirectory.absolutePath)
-
             launch {
                 watchChannel.consumeEach { event ->
                     // there is always the first event triggered and here we only test that
-                    assertThat(event.kind).isEqualTo(WEvent.Kind.Initialized)
+                    assertThat(event.kind).isEqualTo(Kind.Initialized)
                     assertThat(event.fileName).isEqualTo(currentDirectory.absolutePath)
                 }
             }
-
             assertThat(watchChannel.isClosedForSend).isFalse()
-
             watchChannel.close()
-
             assertThat(watchChannel.isClosedForSend).isTrue()
         }
     }
 
-    @Disabled
+    @Test
     fun `watch current directory for created event`() {
-        runBlockingTest {
-            val currentDirectory = File(System.getProperty("user.dir"))
-            val fileName = System.getProperty("user.dir") + "/" + "abc.txt"
-            val watchChannel = currentDirectory.asWatchChannel()
-
-            assertThat(watchChannel.isClosedForSend).isFalse()
-            assertThat(watchChannel.file.absolutePath).isEqualTo(currentDirectory.absolutePath)
-            val newFile = File(fileName).createNewFile()
-            launch {
-                watchChannel.consumeEach { event ->
-                    // there is always the first event triggered and here we only test that
-                    assertThat(event.kind).isEqualTo(WEvent.Kind.Created)
-                    assertThat(event.fileName).isEqualTo(newFile)
-                }
+        val scope = TestCoroutineScope()
+        val list = mutableListOf<WEvent>()
+        scope.foo(list)
+        val fileToCreatePath1: Path = dir.resolve("abc1.txt")
+        Files.createFile(fileToCreatePath1)
+        val except = scope.uncaughtExceptions
+        println("123")
+    }
+    fun CoroutineScope.foo(list: MutableList<WEvent>) {
+        async {
+            val watchChannel = WatchChannel(1,dir.toFile())
+            watchChannel.consumeEach { event ->
+                list.add(event)
             }
-
-            assertThat(watchChannel.isClosedForSend).isFalse()
-            watchChannel.close()
-            assertThat(watchChannel.isClosedForSend).isTrue()
         }
     }
+
 }
