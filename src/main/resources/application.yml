@@ -5,6 +5,10 @@ spring:
       client-id: ${agentid}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        max:
+          request:
+            size: 2097176
     template:
       default-topic: ${topic}
     consumer:

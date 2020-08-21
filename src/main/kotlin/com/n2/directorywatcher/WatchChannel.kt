@@ -8,23 +8,24 @@ import java.nio.file.*
 
 @ExperimentalCoroutinesApi
 fun File.asWatchChannel(
-         agentID:Int = 1
+         agentID:Int = 1,
+         maxRequestSize: Int = 2097176
 ) = WatchChannel(
         agentID = agentID,
+        maxRequestSize = maxRequestSize,
         file = this
 )
 
 @ExperimentalCoroutinesApi
 open class WatchChannel(
         val agentID: Int = 1,
+        val maxRequestSize:Int = 2097176,
         val file: File,
         val launchScope: CoroutineScope = GlobalScope,
         val dispatcher: CoroutineDispatcher = Dispatchers.IO,
         private val channel: Channel<WEvent> = Channel()
 ) : Channel<WEvent> by channel {
-    companion object {
-        val max_message_bytes = 1048588
-    }
+
     private val logger = LoggerFactory.getLogger(javaClass)
     private val watchService: WatchService = FileSystems.getDefault().newWatchService()
     private val registeredKeys = ArrayList<WatchKey>()
@@ -67,7 +68,7 @@ open class WatchChannel(
                         logger.warn("Warn that ${eventPath.toFile().absolutePath} is a directory. So ignore the event")
                     } else {
                         val content = eventPath.toFile().readBytes()
-                        if (content.size< max_message_bytes) {
+                        if (content.size< maxRequestSize) {
                             val event = WEvent(
                                     agentID = agentID,
                                     fileName = eventPath.toFile().absolutePath,
@@ -77,7 +78,7 @@ open class WatchChannel(
                             )
                             channel.send(event)
                         }else {
-                            logger.warn("Warn that ${eventPath.toFile().absolutePath} has a size of ${content.size} which is more than the permitted ${max_message_bytes}.So ignore the event")
+                            logger.warn("Warn that ${eventPath.toFile().absolutePath} has a size of ${content.size} which is more than the permitted ${maxRequestSize}.So ignore the event")
                         }
                     }
                 }

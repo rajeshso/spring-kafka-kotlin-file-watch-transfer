@@ -21,7 +21,7 @@ import java.util.Comparator.reverseOrder
 
 class WatchChannelTest {
 
-    val dir: Path = Files.createTempDirectory("my-dir")
+    val dir: Path = Files.createTempDirectory("junit")
     val fileName = "test-file.txt"
 
     @BeforeEach
@@ -59,24 +59,4 @@ class WatchChannelTest {
             assertThat(watchChannel.isClosedForSend).isTrue()
         }
     }
-
-    @Test
-    fun `watch current directory for created event`() {
-        val scope = TestCoroutineScope()
-        val list = mutableListOf<WEvent>()
-        scope.foo(list)
-        val fileToCreatePath1: Path = dir.resolve("abc1.txt")
-        Files.createFile(fileToCreatePath1)
-        val except = scope.uncaughtExceptions
-        println("123")
-    }
-    fun CoroutineScope.foo(list: MutableList<WEvent>) {
-        async {
-            val watchChannel = WatchChannel(1,dir.toFile())
-            watchChannel.consumeEach { event ->
-                list.add(event)
-            }
-        }
-    }
-
 }

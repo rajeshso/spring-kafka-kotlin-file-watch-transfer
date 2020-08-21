@@ -31,6 +31,9 @@ class DirectoryWatcherBean {
     @Value("\${spring.kafka.producer.client-id}")
     lateinit var agentID: String
 
+    @Value("\${spring.kafka.producer.properties.max.request.size}")
+    lateinit var maxRequestSize: String
+
     @ExperimentalCoroutinesApi
     var watchChannel: WatchChannel? = null
 
@@ -42,7 +45,7 @@ class DirectoryWatcherBean {
         val currentDirectory = File(filepath)
         if (!validate(currentDirectory)) throw IllegalStateException("$currentDirectory is invalid")
 
-        watchChannel = currentDirectory.asWatchChannel(agentID.toInt())
+        watchChannel = currentDirectory.asWatchChannel(agentID.toInt(), maxRequestSize.toInt())
 
         job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->
