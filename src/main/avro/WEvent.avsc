@@ -1,0 +1,38 @@
+{
+  "namespace": "com.n2.event",
+  "name": "WEvent",
+  "type": "record",
+  "fields": [
+    {
+      "name": "agentID",
+      "type": "int",
+      "doc": "int representation of an agent ID"
+    },
+    {
+      "name": "fileName",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      "doc": "file name with absolute path"
+    },
+    {
+      "name": "timeStamp",
+      "type": "long",
+      "doc": "timestamp"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      "doc": "kind of event"
+    },
+    {
+      "name": "content",
+      "type": "bytes",
+      "doc": "file content"
+    }
+  ]
+}

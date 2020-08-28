@@ -1,6 +1,5 @@
 package com.n2
 
-import com.google.gson.Gson
 import com.n2.directorywatcher.WatchChannel
 import com.n2.directorywatcher.asWatchChannel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,8 +48,7 @@ class DirectoryWatcherBean {
 
         job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->
-                val jsonWEvent = Gson().toJson(event)
-                kProducer.send(jsonWEvent)
+                kProducer.send(event.toWEventAvro())
             }
         }
     }

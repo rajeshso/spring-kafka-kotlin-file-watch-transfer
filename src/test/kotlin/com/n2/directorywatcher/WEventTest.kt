@@ -1,6 +1,5 @@
 package com.n2.directorywatcher
 
-import com.google.gson.Gson
 import com.n2.directorywatcher.WEvent.Kind
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,8 +14,6 @@ class WEventTest {
         assertThat(timeStamp).isOne()
         assertThat(kind).isEqualTo(Kind.Initialized)
         assertThat(content).isEqualTo(ByteArray(0))
-        val a = Gson().toJson(wEvent)
-        println(a)
     }
 
     @Test
