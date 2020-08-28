@@ -9,6 +9,9 @@ spring:
         max:
           request:
             size: 2097176
+        schema:
+          registry:
+            url: ${schemaregistryurl}
     template:
       default-topic: ${topic}
     consumer:
