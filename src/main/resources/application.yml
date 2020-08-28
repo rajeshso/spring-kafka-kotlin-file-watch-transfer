@@ -4,14 +4,14 @@ spring:
     producer:
       client-id: ${agentid}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      value-serializer: com.n2.util.AvroSerializer
       properties:
         max:
           request:
             size: 2097176
-        schema:
-          registry:
-            url: ${schemaregistryurl}
+        auto:
+          register:
+            schemas: false
     template:
       default-topic: ${topic}
     consumer:
