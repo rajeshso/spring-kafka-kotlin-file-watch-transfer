@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -49,6 +50,7 @@ class DirectoryWatcherBean {
         job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->
                 kProducer.send(event.toWEventAvro())
+                println(KConsumer.latch.await(10,TimeUnit.SECONDS))
             }
         }
     }

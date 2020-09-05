@@ -9,6 +9,7 @@ class KProducer(private val kafkaTemplate: KafkaTemplate<String, com.n2.event.WE
 
     fun send(wevent: com.n2.event.WEvent) {
         kafkaTemplate.sendDefault(UUID.randomUUID().toString(), wevent)
+        println("produced "+wevent.fileName)
     }
 
 }
