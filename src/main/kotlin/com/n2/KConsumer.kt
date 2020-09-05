@@ -1,5 +1,7 @@
 package com.n2
 
+import com.n2.event.WEvent
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -8,19 +10,18 @@ import java.util.concurrent.CountDownLatch
 @Component
 class KConsumer {
 
-    private val logger = LoggerFactory.getLogger(javaClass)
+   private val logger = LoggerFactory.getLogger(javaClass)
 
-    // More on SpEl here https://docs.spring.io/spring/docs/4.3.10.RELEASE/spring-framework-reference/html/expressions.html
-    @KafkaListener(topics = arrayOf("#{'\${spring.kafka.template.default-topic}'}"))
-    fun processMessage(message: String) {
-        println("got message: " + message)
-        logger.info("got message: {}", message)
-        received = message
+   @KafkaListener(topics = arrayOf("#{'\${spring.kafka.template.default-topic}'}"),  autoStartup = "true")
+   fun processMessage(message: ConsumerRecord<String, WEvent>) {
+        println("got message: " + message.key()+ " "+ message.value())
+        logger.info("got message: {}", message.value())
+        received = message.value()
         latch.countDown()
     }
 
     companion object {
         val latch = CountDownLatch(1)
-        lateinit var received:String
+        lateinit var received: WEvent
     }
 }

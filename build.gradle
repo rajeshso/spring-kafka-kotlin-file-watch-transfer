@@ -74,3 +74,12 @@ avro {
     fieldVisibility = "PRIVATE"
     createSetters = false
 }
+bootRun {
+    if (project.hasProperty('args')) {
+        args project.args.split(',')
+    }
+}
+springBoot {
+    mainClassName = 'com.n2.SpringKafkaKotlinApplicationKt'
+}
+

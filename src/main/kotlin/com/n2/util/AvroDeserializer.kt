@@ -1,5 +1,6 @@
 package com.n2.util
 
+import com.n2.event.WEvent
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.Decoder
@@ -10,10 +11,13 @@ import org.apache.kafka.common.errors.SerializationException
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.xml.bind.DatatypeConverter
-//NOTE: Refer this link for more details http://avro.apache.org/docs/current/spec.html
 
-class AvroDeserializer<T : SpecificRecordBase?>(val targetType: Class<T>) : Deserializer<T?> {
+class AvroDeserializer<T : SpecificRecordBase?>(var targetType: Class<T>) : Deserializer<T?> {
+
+   constructor() : this(WEvent::class.java as Class<T>){
+    targetType = WEvent::class.java as Class<T>
+   }
+
     override fun close() {
         // do nothing
     }
@@ -23,9 +27,7 @@ class AvroDeserializer<T : SpecificRecordBase?>(val targetType: Class<T>) : Dese
     }
 
     override fun deserialize(topic: String, data: ByteArray): T? {
-        if (data == null) return null
         return try {
-                LOGGER.debug("data='{}'", DatatypeConverter.printHexBinary(data))
                 val datumReader: DatumReader<GenericRecord?> = SpecificDatumReader(targetType.getDeclaredConstructor().newInstance()?.schema)
                 val decoder: Decoder = DecoderFactory.get().binaryDecoder(data, null)
                 val result = datumReader.read(null, decoder) as T

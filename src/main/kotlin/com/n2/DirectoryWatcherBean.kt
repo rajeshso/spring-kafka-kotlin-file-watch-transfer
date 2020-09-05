@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
-
 @Component
 class DirectoryWatcherBean {
 
@@ -50,7 +49,7 @@ class DirectoryWatcherBean {
         job = GlobalScope.launch {
             watchChannel?.consumeEach { event ->
                 kProducer.send(event.toWEventAvro())
-                println(KConsumer.latch.await(10,TimeUnit.SECONDS))
+                println(KConsumer.latch.await(5,TimeUnit.SECONDS))
             }
         }
     }

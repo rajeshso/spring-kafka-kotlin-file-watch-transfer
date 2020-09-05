@@ -15,10 +15,16 @@ spring:
     template:
       default-topic: ${topic}
     consumer:
-      client-id: 2
-      group-id: 200
+      client-id: 4
+      group-id: 400
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id=1:
+      value-deserializer: com.n2.util.AvroDeserializer
+      properties:
+        specific:
+          avro:
+            reader: true
+        auto:
+          register:
+            schemas: false
 spring-kafka-kotlin-file-watch-transfer:
   filepath: ${filepath}
